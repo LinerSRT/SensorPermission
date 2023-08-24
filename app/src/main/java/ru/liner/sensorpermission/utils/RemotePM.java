@@ -1,9 +1,11 @@
 package ru.liner.sensorpermission.utils;
 
+import android.app.AndroidAppHelper;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.util.Base64;
 
+import com.crossbowffs.remotepreferences.RemotePreferences;
 import com.google.gson.Gson;
 
 import java.lang.reflect.ParameterizedType;
@@ -14,25 +16,29 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-@SuppressWarnings("unchecked | unused")
-public class PM {
-    private static PM PM;
+/**
+ * @author : "Line'R"
+ * @mailto : serinity320@mail.com
+ * @created : 24.08.2023, четверг
+ **/
+public class RemotePM {
+    private static RemotePM RemotePM;
     private SharedPreferences sharedPreferences;
 
-    public static void init(Context context, String preferenceName) {
-        PM = new PM();
-        if (PM.sharedPreferences == null) {
-            PM.sharedPreferences = context.getSharedPreferences(preferenceName, Context.MODE_PRIVATE);
+    public static void init(Context context) {
+        RemotePM = new RemotePM();
+        if (RemotePM.sharedPreferences == null) {
+            RemotePM.sharedPreferences = new RemotePreferences(context, "ru.liner.sensorpermission", "sensorpermission");
         }
     }
 
-    public static void init(Context context) {
-        init(context, context.getPackageName());
+    public static void init(){
+        init(AndroidAppHelper.currentApplication());
     }
 
     public static void put(String key, Object value) {
         checkInitialization();
-        SharedPreferences.Editor editor = PM.sharedPreferences.edit();
+        SharedPreferences.Editor editor = RemotePM.sharedPreferences.edit();
         if (value instanceof String) {
             editor.putString(key, (String) value);
         } else if (value instanceof Integer) {
@@ -53,17 +59,17 @@ public class PM {
         checkInitialization();
         Object result = defValue;
         if (defValue instanceof String) {
-            result = PM.sharedPreferences.getString(key, (String) defValue);
+            result = RemotePM.sharedPreferences.getString(key, (String) defValue);
         } else if (defValue instanceof Integer) {
-            result = PM.sharedPreferences.getInt(key, (Integer) defValue);
+            result = RemotePM.sharedPreferences.getInt(key, (Integer) defValue);
         } else if (defValue instanceof Boolean) {
-            result = PM.sharedPreferences.getBoolean(key, (Boolean) defValue);
+            result = RemotePM.sharedPreferences.getBoolean(key, (Boolean) defValue);
         } else if (defValue instanceof Float) {
-            result = PM.sharedPreferences.getFloat(key, (Float) defValue);
+            result = RemotePM.sharedPreferences.getFloat(key, (Float) defValue);
         } else if (defValue instanceof Long) {
-            result = PM.sharedPreferences.getLong(key, (Long) defValue);
+            result = RemotePM.sharedPreferences.getLong(key, (Long) defValue);
         } else if (defValue instanceof byte[]) {
-            result = Base64.decode(PM.sharedPreferences.getString(key, ""), Base64.DEFAULT);
+            result = Base64.decode(RemotePM.sharedPreferences.getString(key, ""), Base64.DEFAULT);
         }
         return (T) result;
     }
@@ -109,14 +115,14 @@ public class PM {
 
     public static void putSet(String key, Set<String> set) {
         checkInitialization();
-        SharedPreferences.Editor editor = PM.sharedPreferences.edit();
+        SharedPreferences.Editor editor = RemotePM.sharedPreferences.edit();
         editor.putStringSet(key, set);
         editor.apply();
     }
 
     public static Set<String> getSet(String key) {
         checkInitialization();
-        return PM.sharedPreferences.getStringSet(key, null);
+        return RemotePM.sharedPreferences.getStringSet(key, null);
 
     }
 
@@ -130,7 +136,7 @@ public class PM {
     public static HashMap<?, ?> getMap(String key) {
         checkInitialization();
         HashMap<String, Object> hashMap = new HashMap<>();
-        for (String preferenceKey : PM.sharedPreferences.getAll().keySet()) {
+        for (String preferenceKey : RemotePM.sharedPreferences.getAll().keySet()) {
             if (preferenceKey.contains(key))
                 hashMap.put(preferenceKey.replace("map_" + key + "_", ""), get(preferenceKey, ""));
         }
@@ -139,38 +145,38 @@ public class PM {
 
     public static void clearAll() {
         checkInitialization();
-        SharedPreferences.Editor editor = PM.sharedPreferences.edit();
+        SharedPreferences.Editor editor = RemotePM.sharedPreferences.edit();
         editor.clear();
         editor.apply();
     }
 
     public static void clear(String key) {
         checkInitialization();
-        SharedPreferences.Editor editor = PM.sharedPreferences.edit();
+        SharedPreferences.Editor editor = RemotePM.sharedPreferences.edit();
         editor.remove(key);
         editor.apply();
     }
 
     public static void clearMap(String key) {
         checkInitialization();
-        for (String preferenceKey : PM.sharedPreferences.getAll().keySet()) {
+        for (String preferenceKey : RemotePM.sharedPreferences.getAll().keySet()) {
             if (preferenceKey.replace("map_" + key + "_", "").equalsIgnoreCase(key)) {
                 clear(preferenceKey);
             }
         }
     }
 
-    public static boolean hasKey(String key){
+    public static boolean hasKey(String key) {
         checkInitialization();
-        return PM.sharedPreferences.contains(key);
+        return RemotePM.sharedPreferences.contains(key);
     }
 
     public static String dump() {
         StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append("Preference dump:").append("\n");
-        for (int i = 0; i < PM.sharedPreferences.getAll().keySet().size(); i++) {
-            String key = String.valueOf(PM.sharedPreferences.getAll().keySet().toArray()[i]);
-            String value = String.valueOf(PM.sharedPreferences.getAll().entrySet().toArray()[i]).replace(key + "=", "");
+        for (int i = 0; i < RemotePM.sharedPreferences.getAll().keySet().size(); i++) {
+            String key = String.valueOf(RemotePM.sharedPreferences.getAll().keySet().toArray()[i]);
+            String value = String.valueOf(RemotePM.sharedPreferences.getAll().entrySet().toArray()[i]).replace(key + "=", "");
             stringBuilder.append("\t\t- key=\"").append(key).append("\", value=\"").append(value).append("\"").append("\n");
 
         }
@@ -178,7 +184,7 @@ public class PM {
     }
 
     private static void checkInitialization() {
-        if (PM == null)
+        if (RemotePM == null)
             throw new NullPointerException("Warning! Did you init manager in your Application class?");
     }
 

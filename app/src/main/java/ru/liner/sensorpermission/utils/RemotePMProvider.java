@@ -7,8 +7,8 @@ import com.crossbowffs.remotepreferences.RemotePreferenceProvider;
  * @mailto : serinity320@mail.com
  * @created : 24.08.2023, четверг
  **/
-public class PMProvider extends RemotePreferenceProvider {
-    public PMProvider() {
+public class RemotePMProvider extends RemotePreferenceProvider {
+    public RemotePMProvider() {
         super("ru.liner.sensorpermission", new String[]{"sensorpermission"});
     }
 }

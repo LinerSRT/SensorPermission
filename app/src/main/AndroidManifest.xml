@@ -20,7 +20,7 @@
         </activity>
 
         <provider
-            android:name=".utils.PMProvider"
+            android:name=".utils.RemotePMProvider"
             android:authorities="ru.liner.sensorpermission"
             android:exported="true" />
 

@@ -3,6 +3,7 @@ package ru.liner.sensorpermission;
 import android.app.Application;
 
 import ru.liner.sensorpermission.utils.PM;
+import ru.liner.sensorpermission.utils.RemotePM;
 
 /**
  * @author : "Line'R"
@@ -13,6 +14,6 @@ public class Core extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
-        PM.init(this);
+        RemotePM.init(this);
     }
 }
