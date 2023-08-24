@@ -16,6 +16,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import ru.liner.sensorpermission.BuildConfig;
+
 /**
  * @author : "Line'R"
  * @mailto : serinity320@mail.com
@@ -28,7 +30,7 @@ public class RemotePM {
     public static void init(Context context) {
         RemotePM = new RemotePM();
         if (RemotePM.sharedPreferences == null) {
-            RemotePM.sharedPreferences = new RemotePreferences(context, "ru.liner.sensorpermission", "sensorpermission");
+            RemotePM.sharedPreferences = new RemotePreferences(context, BuildConfig.APPLICATION_ID, "sensorpermission");
         }
     }
 

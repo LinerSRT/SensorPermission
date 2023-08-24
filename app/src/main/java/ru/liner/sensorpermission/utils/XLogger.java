@@ -14,6 +14,6 @@ public class XLogger {
     private static final String DEFAULT_TAG = "SensorPermission";
 
     public static void log(String message, Object... objects) {
-        XposedBridge.log(String.format("%s:%s", DEFAULT_TAG, String.format(message, objects)));
+        XposedBridge.log(String.format("[%s] -> %s", DEFAULT_TAG, String.format(message, objects)));
     }
 }

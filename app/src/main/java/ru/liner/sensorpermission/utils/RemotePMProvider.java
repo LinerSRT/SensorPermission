@@ -2,6 +2,8 @@ package ru.liner.sensorpermission.utils;
 
 import com.crossbowffs.remotepreferences.RemotePreferenceProvider;
 
+import ru.liner.sensorpermission.BuildConfig;
+
 /**
  * @author : "Line'R"
  * @mailto : serinity320@mail.com
@@ -9,6 +11,6 @@ import com.crossbowffs.remotepreferences.RemotePreferenceProvider;
  **/
 public class RemotePMProvider extends RemotePreferenceProvider {
     public RemotePMProvider() {
-        super("ru.liner.sensorpermission", new String[]{"sensorpermission"});
+        super(BuildConfig.APPLICATION_ID, new String[]{"sensorpermission"});
     }
 }

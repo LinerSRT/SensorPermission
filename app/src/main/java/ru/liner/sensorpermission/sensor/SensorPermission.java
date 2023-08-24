@@ -6,6 +6,10 @@ import androidx.annotation.IntDef;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
+import java.util.ArrayList;
+import java.util.List;
+
+import ru.liner.sensorpermission.utils.Pair;
 
 /**
  * @author : "Line'R"
@@ -14,12 +18,11 @@ import java.lang.annotation.RetentionPolicy;
  **/
 public class SensorPermission {
     private final String packageName;
-    private final SparseIntArray sparseIntArray;
+    private final List<Pair<Integer, Integer>> sensorList;
 
     public SensorPermission(String packageName) {
         this.packageName = packageName;
-        this.sparseIntArray = new SparseIntArray();
-
+        this.sensorList = new ArrayList<>();
     }
 
     public String getPackageName() {
@@ -27,33 +30,45 @@ public class SensorPermission {
     }
 
     public boolean hasPermission(@Sensor int sensor) {
-        return sparseIntArray.get(sensor, State.UNKNOWN) == State.GRANTED;
+        for(Pair<Integer, Integer> sensorPair : sensorList)
+            if(sensorPair.getKey() == sensor)
+                return true;
+        return false;
     }
 
     @State
     public int permissionStatus(@Sensor int sensor) {
-        return sparseIntArray.get(sensor, State.UNKNOWN);
+        Pair<Integer, Integer> sensorPair = Pair.find(sensorList, sensor);
+        return sensorPair == null ? State.UNKNOWN : sensorPair.getValue() == State.GRANTED ? State.GRANTED : State.DENIED;
     }
 
     public void grantPermission(@Sensor int sensor) {
-        int index = sparseIntArray.indexOfKey(sensor);
-        if (index != -1)
-            sparseIntArray.removeAt(index);
-        sparseIntArray.put(sensor, State.GRANTED);
+        setSensorState(sensor, State.GRANTED);
     }
 
     public void revokePermission(@Sensor int sensor) {
-        int index = sparseIntArray.indexOfKey(sensor);
-        if (index != -1)
-            sparseIntArray.removeAt(index);
-        sparseIntArray.put(sensor, State.DENIED);
+        setSensorState(sensor, State.DENIED);
     }
 
     public void forgetPermission(@Sensor int sensor) {
-        int index = sparseIntArray.indexOfKey(sensor);
-        if (index != -1)
-            sparseIntArray.removeAt(index);
-        sparseIntArray.put(sensor, State.UNKNOWN);
+        setSensorState(sensor, State.UNKNOWN);
+    }
+
+    private void setSensorState(@Sensor int sensor, @State int state){
+        int sensorIndex = -1;
+        for (int i = 0; i < sensorList.size(); i++) {
+            Pair<Integer, Integer> pair = sensorList.get(i);
+            if(pair.getKey() == sensor){
+                sensorIndex = i;
+                break;
+            }
+        }
+        Pair<Integer, Integer> grantedPair = new Pair<>(sensor, state);
+        if(sensorIndex == -1){
+            sensorList.add(grantedPair);
+        } else {
+            sensorList.set(sensorIndex, grantedPair);
+        }
     }
 
     @IntDef({State.GRANTED, State.DENIED, State.UNKNOWN})

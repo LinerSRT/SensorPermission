@@ -1,16 +1,16 @@
 package ru.liner.sensorpermission;
 
-import android.annotation.SuppressLint;
 import android.app.AndroidAppHelper;
+import android.content.Context;
 import android.hardware.Sensor;
-import android.hardware.SensorManager;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 
 import de.robv.android.xposed.IXposedHookLoadPackage;
 import de.robv.android.xposed.XC_MethodHook;
-import de.robv.android.xposed.XC_MethodReplacement;
-import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
 import de.robv.android.xposed.callbacks.XC_LoadPackage;
 import ru.liner.sensorpermission.sensor.SensorPermission;
@@ -27,41 +27,40 @@ public class XposedCore implements IXposedHookLoadPackage {
 
     @Override
     public void handleLoadPackage(XC_LoadPackage.LoadPackageParam packageParam) {
-        XposedBridge.hookAllMethods(SensorManager.class, "getDefaultSensor", new XC_MethodReplacement() {
-            @Override
-            protected Object replaceHookedMethod(MethodHookParam param) throws Throwable {
-                RemotePM.init();
-                String callingPackageName = AndroidAppHelper.currentPackageName();
-                int sensorType = (int) param.args[0];
-                List<Sensor> sensorList = (List<Sensor>) XposedHelpers.callMethod(param.thisObject, "getSensorList", new Class[]{int.class}, sensorType);
-                @SuppressLint("InlinedApi")
-                boolean wakeUpSensor =
-                        sensorType == Sensor.TYPE_PROXIMITY
-                                || sensorType == Sensor.TYPE_SIGNIFICANT_MOTION
-                                || sensorType == Sensor.TYPE_LOW_LATENCY_OFFBODY_DETECT
-                                || sensorType == Sensor.TYPE_HINGE_ANGLE;
-
-                if(!RemotePM.hasKey(callingPackageName))
-                    RemotePM.putObject(callingPackageName, new SensorPermission(callingPackageName));
-                SensorPermission sensorPermission = RemotePM.getObject(callingPackageName, SensorPermission.class);
-                switch (sensorPermission.permissionStatus(sensorType)) {
-                    case SensorPermission.State.DENIED:
-                        XLogger.log("Denied permission %s for %s, hide sensor...", sensorType, callingPackageName);
-                        return null;
-                    case SensorPermission.State.GRANTED:
-                        XLogger.log("Granted permission %s for %s, continue...", sensorType, callingPackageName);
-                        for (Sensor sensor : sensorList) {
-                            if (sensor.isWakeUpSensor() == wakeUpSensor) {
-                                return sensor;
+        XposedHelpers.findAndHookMethod("android.hardware.SystemSensorManager", packageParam.classLoader,
+                "getFullSensorList", new XC_MethodHook() {
+                    @Override
+                    protected void afterHookedMethod(MethodHookParam param) throws Throwable {
+                        if (!packageParam.packageName.equals(BuildConfig.APPLICATION_ID)) {
+                            List<Sensor> sensorList = new ArrayList<>((Collection<? extends Sensor>) param.getResult());
+                            Iterator<Sensor> sensorIterator = sensorList.iterator();
+                            RemotePM.init();
+                            String callingPackageName = AndroidAppHelper.currentPackageName();
+                            Context context = AndroidAppHelper.currentApplication();
+                            while (sensorIterator.hasNext()) {
+                                Sensor sensor = sensorIterator.next();
+                                SensorPermission sensorPermission = RemotePM.hasKey(callingPackageName) ? RemotePM.getObject(callingPackageName, SensorPermission.class) : new SensorPermission(callingPackageName);
+                                if (!sensorPermission.hasPermission(sensor.getType()))
+                                    sensorPermission.forgetPermission(sensor.getType());
+                                switch (sensorPermission.permissionStatus(sensor.getType())) {
+                                    case SensorPermission.State.DENIED:
+                                        XLogger.log("Denied permission %s for %s, hide sensor...", sensor.getStringType(), callingPackageName);
+                                        sensorIterator.remove();
+                                        break;
+                                    case SensorPermission.State.GRANTED:
+                                        XLogger.log("Granted permission %s for %s, continue...", sensor.getStringType(), callingPackageName);
+                                        break;
+                                    default:
+                                    case SensorPermission.State.UNKNOWN:
+                                        //TODO Create activity for ask permission
+                                        XLogger.log("Missing permission definition for %s", callingPackageName);
+                                        break;
+                                }
+                                RemotePM.putObject(callingPackageName, sensorPermission);
                             }
+                            param.setResult(sensorList);
                         }
-                        return null;
-                    default:
-                    case SensorPermission.State.UNKNOWN:
-                        //TODO Create activity for ask permission
-                        return null;
-                }
-            }
-        });
+                    }
+                });
     }
 }

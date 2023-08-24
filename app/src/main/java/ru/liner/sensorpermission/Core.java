@@ -2,7 +2,6 @@ package ru.liner.sensorpermission;
 
 import android.app.Application;
 
-import ru.liner.sensorpermission.utils.PM;
 import ru.liner.sensorpermission.utils.RemotePM;
 
 /**
