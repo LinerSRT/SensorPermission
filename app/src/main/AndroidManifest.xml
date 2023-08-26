@@ -3,18 +3,31 @@
     xmlns:tools="http://schemas.android.com/tools"
     package="ru.liner.sensorpermission">
 
+    <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES"
+        tools:ignore="QueryAllPackagesPermission" />
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"/>
+
     <application
+        android:name=".Core"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
-        android:name=".Core"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:theme="@style/Theme.SensorPermission">
+        <activity
+            android:name=".activity.PermissionRequestActivity"
+            android:theme="@style/FullScreenActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+            </intent-filter>
+        </activity>
         <activity
             android:name=".MainActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
@@ -33,6 +46,8 @@
         <meta-data
             android:name="xposedminversion"
             android:value="53" />
+
+        <service android:name=".service.PermissionOverlayService" android:exported="true"/>
     </application>
 
 </manifest>

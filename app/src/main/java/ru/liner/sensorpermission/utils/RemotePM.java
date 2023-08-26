@@ -86,13 +86,9 @@ public class RemotePM {
         return putObject(key, object, false);
     }
 
-    public static <T> T getObject(String key, Class<T> object, boolean fromFile) {
-        checkInitialization();
-        return new Gson().fromJson((String) get(key, ""), object);
-    }
-
     public static <T> T getObject(String key, Class<T> object) {
-        return getObject(key, object, false);
+        checkInitialization();
+        return hasKey(key) ? new Gson().fromJson((String) get(key, ""), object) : null;
     }
 
     public static <T> T putList(String key, final T list, boolean toFile) {

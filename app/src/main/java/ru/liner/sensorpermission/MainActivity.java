@@ -1,12 +1,11 @@
 package ru.liner.sensorpermission;
 
-import androidx.appcompat.app.AppCompatActivity;
-
-import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.os.Bundle;
 
-import ru.liner.sensorpermission.utils.RemotePM;
+import androidx.appcompat.app.AppCompatActivity;
+
+import ru.liner.sensorpermission.service.PermissionOverlayService;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -14,14 +13,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        RemotePM.put("HUII", 123123);
 
-        Intent intent = new Intent("de.robv.android.xposed.installer.OPEN_SECTION");
-        intent.putExtra("section", "modules");
-        try {
-            startActivity(intent);
-        } catch (ActivityNotFoundException e) {
-
-        }
+        startService(new Intent(this, PermissionOverlayService.class).putExtra("sensor", 2).putExtra("package_name", BuildConfig.APPLICATION_ID));
     }
 }
