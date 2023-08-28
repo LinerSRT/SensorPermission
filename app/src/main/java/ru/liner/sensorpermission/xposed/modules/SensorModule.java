@@ -38,7 +38,7 @@ public class SensorModule extends XposedModule {
                 .methodName("getDefaultSensor")
                 .methodArguments(int.class)
                 .beforeFunction(hookedMethod -> {
-                    PermissionPackage permissionPackage = Consumer.of(RemotePM.getObject(packageName, PermissionPackage.class)).orElse(new PermissionPackage(packageName));
+                    PermissionPackage permissionPackage = Consumer.of(RemotePM.get(packageName, PermissionPackage.class)).orElse(new PermissionPackage(packageName));
                     PermissionInfo permissionInfo = permissionPackage.getPermission(hookedMethod.argument(0));
                     String sensorName = SensorTool.getSensorName(context, permissionInfo.sensor);
                     String applicationName = ApplicationManager.getApplicationName(context, packageName);

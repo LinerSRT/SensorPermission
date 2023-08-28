@@ -46,6 +46,9 @@ public class XposedModule {
     public void log(String message, Object... objects) {
         XposedBridge.log(String.format("{%s} --> %s", TAG, String.format(message, objects)));
     }
+    public static void log(String tag, String message, Object... objects) {
+        XposedBridge.log(String.format("{%s} --> %s", tag, String.format(message, objects)));
+    }
 
     public static Context getSystemContext() {
         return (Context) callMethod(callStaticMethod(findClass("android.app.ActivityThread", null), "currentActivityThread"), "getSystemContext");

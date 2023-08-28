@@ -109,10 +109,12 @@ public class RemotePM {
             result = RemotePM.sharedPreferences.getLong(key, (Long) defValue);
         } else if (defValue instanceof byte[]) {
             result = Base64.decode(RemotePM.sharedPreferences.getString(key, ""), Base64.DEFAULT);
-        } else if (defValue instanceof Class) {
-            result = new Gson().fromJson((String) get(key, ""), (Class<T>) defValue);
         }
         return (T) result;
+    }
+    public static <T> T get(String key, Class<T> clazz) {
+        checkInitialization();
+        return new Gson().fromJson((String) get(key, "{}"), clazz);
     }
 
 
