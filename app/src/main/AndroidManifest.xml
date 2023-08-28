@@ -3,9 +3,22 @@
     xmlns:tools="http://schemas.android.com/tools"
     package="ru.liner.sensorpermission">
 
-    <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES"
-        tools:ignore="QueryAllPackagesPermission" />
-    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"/>
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"
+        android:maxSdkVersion="32" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+
+<uses-permission android:name="android.permission.QUERY_ALL_PACKAGES"
+    tools:ignore="QueryAllPackagesPermission" />
+
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.MAIN" />
+        </intent>
+    </queries>
 
     <application
         android:name=".Core"
@@ -14,14 +27,6 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:theme="@style/Theme.SensorPermission">
-        <activity
-            android:name=".activity.PermissionRequestActivity"
-            android:theme="@style/FullScreenActivity"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-            </intent-filter>
-        </activity>
         <activity
             android:name=".MainActivity"
             android:exported="true">
@@ -35,7 +40,8 @@
         <provider
             android:name=".utils.RemotePMProvider"
             android:authorities="ru.liner.sensorpermission"
-            android:exported="true" />
+            android:exported="true"
+            tools:ignore="ExportedContentProvider" />
 
         <meta-data
             android:name="xposedmodule"
@@ -46,8 +52,20 @@
         <meta-data
             android:name="xposedminversion"
             android:value="53" />
-
-        <service android:name=".service.PermissionOverlayService" android:exported="true"/>
+        <receiver
+            android:name=".service.PermissionOverlayRestartReceiver"
+            android:enabled="true"
+            android:exported="true"
+            android:permission="ru.liner.sensorpermission.RESTART_OVERLAY" />
+        <receiver
+            android:name=".service.PermissionOverlayRebootReceiver"
+            android:enabled="true"
+            android:exported="true">
+            <intent-filter android:priority="2147483647">
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
+        <service android:name=".service.PermissionOverlayService" android:foregroundServiceType="location"/>
     </application>
 
 </manifest>

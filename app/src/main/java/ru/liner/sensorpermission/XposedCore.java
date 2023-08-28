@@ -1,35 +1,52 @@
 package ru.liner.sensorpermission;
 
-import static de.robv.android.xposed.XposedHelpers.findAndHookMethod;
+import android.annotation.SuppressLint;
 
-import android.app.AndroidAppHelper;
+import java.util.ArrayList;
+import java.util.List;
 
 import de.robv.android.xposed.IXposedHookLoadPackage;
-import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.callbacks.XC_LoadPackage;
-import ru.liner.sensorpermission.utils.XLogger;
-import ru.liner.sensorpermission.xposed.PermissionModule;
+import ru.liner.sensorpermission.xposed.XposedModule;
+import ru.liner.sensorpermission.xposed.modules.SensorModule;
+import ru.liner.sensorpermission.xposed.modules.SensorPermissionModule;
+import ru.liner.sensorpermission.xposed.modules.SystemUIModule;
 
 /**
  * @author : "Line'R"
  * @mailto : serinity320@mail.com
  * @created : 24.08.2023, четверг
- **/
+ */
 public class XposedCore implements IXposedHookLoadPackage {
-    private static final String SYSTEM_SENSOR_MANAGER_CLASS = "android.hardware.SystemSensorManager";
-    private static final PermissionModule permissionModule = new PermissionModule();
+    private final List<XposedModule> moduleList = new ArrayList<>();
 
+    private <M extends XposedModule> void addModule(String packageName, M module) {
+        if (moduleList.stream().noneMatch(xposedModule -> xposedModule.getPackageName().equals(packageName)))
+            moduleList.add(module);
+    }
+
+
+    @SuppressLint("PrivateApi")
     @Override
     public void handleLoadPackage(XC_LoadPackage.LoadPackageParam packageParam) {
-        findAndHookMethod(SYSTEM_SENSOR_MANAGER_CLASS, packageParam.classLoader, "getFullSensorList", new XC_MethodHook() {
-            @Override
-            protected void afterHookedMethod(MethodHookParam methodHookParam) {
-                if (permissionModule.shouldProcess(packageParam.packageName)) {
-                    permissionModule.process(AndroidAppHelper.currentApplication(), packageParam.packageName, packageParam.classLoader, methodHookParam);
-                } else {
-                    XLogger.log("Skipping %s, module does not allow this package to modify", packageParam.packageName);
-                }
-            }
-        });
+        switch (packageParam.packageName) {
+            case XposedModule.ANDROID:
+                //Do nothing
+                break;
+            case SystemUIModule.PACKAGE:
+                addModule(packageParam.packageName, SystemUIModule.of(packageParam));
+                break;
+            case BuildConfig.APPLICATION_ID:
+                addModule(packageParam.packageName, SensorPermissionModule.of(packageParam));
+                break;
+            default:
+                addModule(packageParam.packageName, SensorModule.of(packageParam));
+                break;
+        }
+
+        for (XposedModule module : moduleList)
+            if (module.shouldProcess(packageParam))
+                module.processModule();
+
     }
 }

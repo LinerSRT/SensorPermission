@@ -1,9 +1,11 @@
 package ru.liner.sensorpermission.utils;
 
-import android.app.AndroidAppHelper;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.util.Base64;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.crossbowffs.remotepreferences.RemotePreferences;
 import com.google.gson.Gson;
@@ -22,20 +24,53 @@ import ru.liner.sensorpermission.BuildConfig;
  * @author : "Line'R"
  * @mailto : serinity320@mail.com
  * @created : 24.08.2023, четверг
- **/
+ * @noinspection unchecked, unused
+ */
 public class RemotePM {
     private static RemotePM RemotePM;
     private SharedPreferences sharedPreferences;
+    private List<ChangeListener<?>> changeListeners;
 
     public static void init(Context context) {
         RemotePM = new RemotePM();
         if (RemotePM.sharedPreferences == null) {
             RemotePM.sharedPreferences = new RemotePreferences(context, BuildConfig.APPLICATION_ID, "sensorpermission");
+            RemotePM.changeListeners = new ArrayList<>();
+            RemotePM.sharedPreferences.registerOnSharedPreferenceChangeListener((sharedPreferences, s) -> {
+                for (ChangeListener<?> changeListener : RemotePM.changeListeners) {
+                    if (s.equals(changeListener.key())) {
+                        if (hasKey(s)) {
+                            changeListener.onChanged(get(s, changeListener.defaultValue()));
+                        } else {
+                            changeListener.onRemoved();
+                        }
+                    }
+                }
+            });
         }
     }
 
-    public static void init(){
-        init(AndroidAppHelper.currentApplication());
+    public static <V> void register(ChangeListener<V> listener) {
+        checkInitialization();
+        RemotePM.changeListeners.add(listener);
+
+    }
+
+    public static <V> void unregister(ChangeListener<V> listener) {
+        checkInitialization();
+        RemotePM.changeListeners.remove(listener);
+    }
+
+    public interface ChangeListener<V> {
+        void onChanged(@Nullable V value);
+
+        void onRemoved();
+
+        @NonNull
+        V defaultValue();
+
+        @NonNull
+        String key();
     }
 
     public static void put(String key, Object value) {
@@ -53,6 +88,8 @@ public class RemotePM {
             editor.putLong(key, (Long) value);
         } else if (value instanceof byte[]) {
             editor.putString(key, Base64.encodeToString((byte[]) value, Base64.DEFAULT));
+        } else {
+            put(key, new Gson().toJson(value));
         }
         editor.apply();
     }
@@ -72,32 +109,12 @@ public class RemotePM {
             result = RemotePM.sharedPreferences.getLong(key, (Long) defValue);
         } else if (defValue instanceof byte[]) {
             result = Base64.decode(RemotePM.sharedPreferences.getString(key, ""), Base64.DEFAULT);
+        } else if (defValue instanceof Class) {
+            result = new Gson().fromJson((String) get(key, ""), (Class<T>) defValue);
         }
         return (T) result;
     }
 
-    public static <T> T putObject(String key, final T object, boolean toFile) {
-        checkInitialization();
-        put(key, new Gson().toJson(object));
-        return null;
-    }
-
-    public static <T> T putObject(String key, final T object) {
-        return putObject(key, object, false);
-    }
-
-    public static <T> T getObject(String key, Class<T> object) {
-        checkInitialization();
-        return hasKey(key) ? new Gson().fromJson((String) get(key, ""), object) : null;
-    }
-
-    public static <T> T putList(String key, final T list, boolean toFile) {
-        return putObject(key, list, true);
-    }
-
-    public static <T> T putList(String key, final T list) {
-        return putObject(key, list);
-    }
 
     public static <T> List<T> getList(String key, Class<T> clazz, boolean fromFile) {
         checkInitialization();
@@ -193,11 +210,13 @@ public class RemotePM {
             this.clazz = wrapper;
         }
 
+        @NonNull
         @Override
         public Type[] getActualTypeArguments() {
             return new Type[]{clazz};
         }
 
+        @NonNull
         @Override
         public Type getRawType() {
             return List.class;

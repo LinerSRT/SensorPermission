@@ -1,24 +1,3 @@
 <resources>
     <string name="app_name">SensorPermission</string>
-    <string name="sensor_accelerometer">Accelerometer</string>
-    <string name="sensor_magnetic_field">Magnetic Field</string>
-    <string name="sensor_orientation">Orientation</string>
-    <string name="sensor_gyroscope">Gyroscope</string>
-    <string name="sensor_light">Light</string>
-    <string name="sensor_pressure">Pressure</string>
-    <string name="sensor_temperature">Temperature</string>
-    <string name="sensor_proximity">Proximity</string>
-    <string name="sensor_gravity">Gravity</string>
-    <string name="sensor_linear_acceleration">Linear acceleration</string>
-    <string name="sensor_rotation_vector">Rotation vector</string>
-    <string name="sensor_relative_humidity">Relative humidity</string>
-    <string name="sensor_game_rotation_vector">Game rotation vector</string>
-    <string name="sensor_significant_motion">Motion</string>
-    <string name="sensor_step_detector">Step detector</string>
-    <string name="sensor_step_counter">Step counter</string>
-    <string name="sensor_geomagnetic_rotation_vector">Geomagnetic rotation vector</string>
-    <string name="sensor_heart_rate">Heart rate</string>
-    <string name="sensor_tilt_detector">Tilt</string>
-    <string name="don_t_allow">Don\'t allow</string>
-    <string name="allow">Allow</string>
 </resources>

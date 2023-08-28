@@ -1,6 +1,6 @@
-<resources xmlns:tools="http://schemas.android.com/tools">
+<resources>
     <!-- Base application theme. -->
-    <style name="Theme.SensorPermission" parent="Theme.MaterialComponents.DayNight.DarkActionBar">
+    <style name="Theme.SensorPermission" parent="Theme.MaterialComponents.DayNight.NoActionBar">
         <!-- Primary brand color. -->
         <item name="colorPrimary">@color/primaryColor</item>
         <item name="colorPrimaryVariant">@color/primaryColorVariant</item>
@@ -10,35 +10,9 @@
         <item name="colorSecondaryVariant">@color/secondaryColorVariant</item>
         <item name="colorOnSecondary">@color/white</item>
         <!-- Status bar color. -->
-        <item name="android:statusBarColor" tools:targetApi="l">?attr/colorPrimaryVariant</item>
+        <item name="android:statusBarColor">?attr/colorPrimaryVariant</item>
         <!-- Customize your theme here. -->
     </style>
 
 
-    <style name="FullScreenActivity" parent="Theme.SensorPermission">
-        <item name="android:windowSwipeToDismiss">false</item>
-        <item name="android:windowBackground">@android:color/transparent</item>
-        <item name="android:windowNoTitle">true</item>
-        <item name="android:windowShowWallpaper">true</item>
-        <item name="android:windowFullscreen">true</item>
-        <item name="android:windowActionBar">false</item>
-        <item name="android:windowTranslucentNavigation">false</item>
-        <item name="android:windowContentOverlay">@null</item>
-        <item name="android:colorBackgroundCacheHint">@null</item>
-    </style>
-
-    <style name="ButtonBottomCut">
-        <item name="cornerFamily">rounded</item>
-        <item name="cornerFamilyBottomRight">cut</item>
-        <item name="cornerFamilyBottomLeft">cut</item>
-        <item name="cornerSizeTopLeft">10dp</item>
-        <item name="cornerSizeTopRight">10dp</item>
-    </style>
-    <style name="ButtonTopCut">
-        <item name="cornerFamily">rounded</item>
-        <item name="cornerFamilyTopRight">cut</item>
-        <item name="cornerFamilyTopLeft">cut</item>
-        <item name="cornerSizeBottomLeft">10dp</item>
-        <item name="cornerSizeBottomRight">10dp</item>
-    </style>
 </resources>

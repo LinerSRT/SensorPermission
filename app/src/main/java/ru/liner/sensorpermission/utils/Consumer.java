@@ -1,28 +1,60 @@
 package ru.liner.sensorpermission.utils;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
 import java.io.IOException;
 
+/** @noinspection unused*/
 public class Consumer<T> {
-
+    /**
+     * Operating value
+     */
+    @Nullable
     private final T value;
 
-    public Consumer( T value) {
+    /**
+     * Default constructor
+     * @param value that be processed
+     */
+    public Consumer(@Nullable T value) {
         this.value = value;
     }
 
+    /**
+     * Default constructor
+     */
     public Consumer() {
         this.value = null;
     }
 
-    public static <T> Consumer<T> of(T value) {
+    /**
+     * Static constructor
+     * @param value that be processed
+     * @return instance of consumer
+     * @param <T> any type of objects
+     */
+    public static <T> Consumer<T> of(@Nullable T value) {
         return new Consumer<>(value);
     }
+
+    /**
+     * Static constructor
+     * @return empty consumer
+     * @param <T>  any type of objects
+     */
 
     public static <T> Consumer<T> empty() {
         return new Consumer<>();
     }
 
-    public <S> Consumer<S> next(FunctionB<? super T, ? extends S> function) {
+    /**
+     * Convert operating value to other type
+     * @param function that convert value
+     * @return empty consumer if  original operated value was null. Return consumer with converted value
+     * @param <S> next operating object type
+     */
+    public <S> Consumer<S> next(@NonNull FunctionB<? super T, ? extends S> function) {
         try {
             return new Consumer<>(value == null ? null : function.apply(value));
         } catch (IOException e) {
@@ -31,7 +63,11 @@ public class Consumer<T> {
         }
     }
 
-    public void ifPresent(Function<? super T> consumer){
+    /**
+     * Interact with value if its not null
+     * @param consumer operating function
+     */
+    public void ifPresent(@NonNull Function<? super T> consumer){
         if(value != null) {
             try {
                 consumer.apply(value);
@@ -41,11 +77,36 @@ public class Consumer<T> {
         }
     }
 
+    /**
+     * Check if values is not null
+     * @return true if value not null
+     */
+    public boolean isPresent(){
+        return value != null;
+    }
 
+    /**
+     * Return specified value if operating value is null
+     * @param other new value
+     * @return value
+     */
+    public T orElse(T other){
+        return value == null ? other : value;
+    }
+
+    /**
+     * Return operating value. This may return null, use {@link Consumer#orElse(Object)}
+     * @return value
+     */
+    @Nullable
     public T get() {
         return value;
     }
 
+    /**
+     * Return value as boolean
+     * @return value
+     */
     public boolean asBoolean() {
         if (value == null)
             return false;
@@ -53,7 +114,10 @@ public class Consumer<T> {
             return (Boolean) value;
         return false;
     }
-
+    /**
+     * Return value as int
+     * @return value
+     */
     public int asInt() {
         if (value == null)
             return 0;
@@ -61,7 +125,10 @@ public class Consumer<T> {
             return (Integer) value;
         return 0;
     }
-
+    /**
+     * Return value as long
+     * @return value
+     */
     public long asLong() {
         if (value == null)
             return 0;
@@ -70,6 +137,10 @@ public class Consumer<T> {
         return 0;
     }
 
+    /**
+     * Return value as double
+     * @return value
+     */
     public double asDouble() {
         if (value == null)
             return 0;
@@ -78,6 +149,10 @@ public class Consumer<T> {
         return 0;
     }
 
+    /**
+     * Return value as float
+     * @return value
+     */
     public float asFloat() {
         if (value == null)
             return 0;
@@ -86,19 +161,21 @@ public class Consumer<T> {
         return 0;
     }
 
-    public T orElse(T other){
-        return value == null ? other : value;
-    }
 
-    public boolean isPresent(){
-        return value != null;
-    }
-
+    /**
+     * Self written function to provide backward compatibility of {@link java.util.function.Function}
+     * @param <T> any type
+     */
     public interface Function<T>{
-        void apply(T input) throws IOException;
+        void apply(@NonNull T input) throws IOException;
     }
 
+    /**
+     * Self written function to provide backward compatibility of {@link java.util.function.Function}
+     * @param <T> any type
+     */
     public interface FunctionB<T, R>{
-        R apply(T input) throws IOException;
+        @NonNull
+        R apply(@NonNull T input) throws IOException;
     }
 }

@@ -5,21 +5,23 @@ import android.view.View;
 
 import androidx.annotation.CallSuper;
 import androidx.annotation.Nullable;
-import androidx.fragment.app.FragmentActivity;
+
+import ru.liner.colorfy.core.ColorfyActivity;
 
 /**
  * @author : "Line'R"
  * @mailto : serinity320@mail.com
  * @created : 24.08.2023, четверг
  **/
-public class FullscreenActivity extends FragmentActivity {
+public class FullscreenActivity extends ColorfyActivity {
     private static final int FLAGS =
-              View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-            | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-            | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-            | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-            | View.SYSTEM_UI_FLAG_FULLSCREEN
-            | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;
+            View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                    | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                    | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                    | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                    | View.SYSTEM_UI_FLAG_FULLSCREEN
+                    | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;
+
     @Override
     @CallSuper
     protected void onStart() {

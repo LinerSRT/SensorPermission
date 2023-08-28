@@ -3,6 +3,7 @@ package ru.liner.sensorpermission.permission;
 import androidx.annotation.NonNull;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -45,5 +46,14 @@ public class PermissionPackage {
 
     public String getPackageName() {
         return packageName;
+    }
+
+    @Override
+    @NonNull
+    public String toString() {
+        return "PermissionPackage{" +
+                "packageName='" + packageName + '\'' +
+                ", permissionList=" + Arrays.toString(permissionList.toArray()) +
+                '}';
     }
 }

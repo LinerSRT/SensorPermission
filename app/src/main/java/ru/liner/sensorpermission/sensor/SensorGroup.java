@@ -1,5 +1,7 @@
 package ru.liner.sensorpermission.sensor;
 
+
+/** @noinspection unused*/
 public enum SensorGroup {
     MOTION(
             Sensor.ACCELEROMETER,

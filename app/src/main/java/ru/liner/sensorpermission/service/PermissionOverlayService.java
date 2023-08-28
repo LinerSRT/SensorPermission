@@ -1,97 +1,108 @@
 package ru.liner.sensorpermission.service;
 
-import android.app.Service;
+import android.app.AlarmManager;
+import android.content.BroadcastReceiver;
 import android.content.Intent;
-import android.graphics.PixelFormat;
-import android.os.Build;
-import android.os.IBinder;
+import android.util.Log;
 import android.view.WindowManager;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import ru.liner.colorfy.core.Colorfy;
+import ru.liner.sensorpermission.BuildConfig;
+import ru.liner.sensorpermission.R;
+import ru.liner.sensorpermission.permission.PermissionRequest;
 import ru.liner.sensorpermission.utils.Consumer;
 import ru.liner.sensorpermission.utils.RemotePM;
-import ru.liner.sensorpermission.view.PermissionRequestView;
 
 /**
  * Author: Line'R
  * E-mail: serinity320@mail.com
  * Github: https://github.com/LinerSRT
- * Date: 26.08.2023, 13:57
+ * Date: 27.08.2023, 14:04
  */
-public class PermissionOverlayService extends Service {
+public class PermissionOverlayService extends ImmortalService implements RemotePM.ChangeListener<PermissionRequest> {
+    private static final String TAG = PermissionOverlayService.class.getSimpleName();
     private WindowManager windowManager;
-    private WindowManager.LayoutParams layoutParams;
-    private PermissionRequestView permissionView;
+    private Colorfy colorfy;
 
     @Override
     public void onCreate() {
         super.onCreate();
         RemotePM.init(this);
-        windowManager = ((WindowManager) getSystemService(WINDOW_SERVICE));
-        layoutParams = new WindowManager.LayoutParams(
-                WindowManager.LayoutParams.MATCH_PARENT,
-                WindowManager.LayoutParams.MATCH_PARENT,
-                Build.VERSION.SDK_INT >= Build.VERSION_CODES.O ? WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY : WindowManager.LayoutParams.TYPE_PHONE,
-                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
-                        | WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED
-                        | WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD,
-                PixelFormat.TRANSLUCENT);
-        layoutParams.flags = WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS;
+        alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
+        windowManager = (WindowManager) getSystemService(WINDOW_SERVICE);
+        colorfy = Colorfy.getInstance(this);
     }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        String packageName = intent.getStringExtra("package_name");
-        int sensor = intent.getIntExtra("sensor", Integer.MIN_VALUE);
-        if (packageName == null || packageName.length() == 0) {
-            stopSelf();
-        } else {
-            if (permissionView == null)
-                permissionView = new PermissionRequestView(this);
-            permissionView.setData(packageName, sensor);
-            permissionView.setCallback(new PermissionRequestView.Callback() {
-                @Override
-                public void onBackPressed(PermissionRequestView view) {
-                    stopSelf();
-                }
+        Log.d(TAG, "Service started");
 
-                @Override
-                public void onAllowPressed(PermissionRequestView view) {
-
-                }
-
-                @Override
-                public void onDenyPressed(PermissionRequestView view) {
-
-                }
-            });
-            try {
-                windowManager.removeViewImmediate(permissionView);
-            } catch (IllegalArgumentException e) {
-                e.printStackTrace();
-            }
-            windowManager.addView(permissionView, layoutParams);
-        }
-        return START_STICKY;
+        return START_NOT_STICKY;
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
-        Consumer.of(windowManager)
-                .ifPresent(input -> Consumer.of(permissionView).ifPresent(view -> {
-                    try {
-                        input.removeViewImmediate(view);
-                    } catch (IllegalArgumentException e) {
-                        e.printStackTrace();
-                    }
-                }));
+        Log.d(TAG, "Service destroyed");
     }
 
-    @Nullable
+    @NonNull
     @Override
-    public IBinder onBind(Intent intent) {
-        return null;
+    public String getChannelID() {
+        return PermissionOverlayService.class.getSimpleName();
+    }
+
+    @NonNull
+    @Override
+    public String getChannelDescription() {
+        return "Display permission overlay when app trying to access sensor";
+    }
+
+    @Override
+    public int getNotificationIcon() {
+        return R.drawable.baseline_privacy_tip_24;
+    }
+
+    @NonNull
+    @Override
+    public String getNotificationTitle() {
+        return "Permission overlay service";
+    }
+
+    @NonNull
+    @Override
+    protected String getNotificationText() {
+        return "Display permission overlay when app trying to access sensor";
+    }
+
+    @NonNull
+    @Override
+    public Class<? extends BroadcastReceiver> getRestartReceiverClass() {
+        return PermissionOverlayRestartReceiver.class;
+    }
+
+    @Override
+    public void onChanged(@Nullable PermissionRequest newValue) {
+        Consumer.of(newValue).ifPresent(input -> Log.d(TAG, "Received pending request: " + newValue.toString()));
+    }
+
+    @Override
+    public void onRemoved() {
+        Log.d(TAG, "Pending request was removed");
+    }
+
+    @NonNull
+    @Override
+    public String key() {
+        return "pending_permission_request";
+    }
+
+    @NonNull
+    @Override
+    public PermissionRequest defaultValue() {
+        return new PermissionRequest(BuildConfig.APPLICATION_ID, 0);
     }
 }

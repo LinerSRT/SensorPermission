@@ -1,25 +1,25 @@
 package ru.liner.sensorpermission.sensor;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
-import android.graphics.drawable.Drawable;
 import android.hardware.SensorManager;
 import android.text.TextUtils;
 
 import androidx.annotation.NonNull;
-import androidx.core.content.ContextCompat;
 
 import ru.liner.sensorpermission.BuildConfig;
-import ru.liner.sensorpermission.R;
 
 public class SensorTool {
     /**
      * Adapted for using from XPosed (Context may be not our app, so we need load resources not using R*)
+     *
      * @param context application context
-     * @param sensor sensor type
+     * @param sensor  sensor type
      * @return name of associated sensor
      */
+    @SuppressLint("DiscouragedApi")
     public static String getSensorName(@NonNull Context context, @Sensor int sensor) {
         SensorManager sensorManager = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
         try {
@@ -93,35 +93,6 @@ public class SensorTool {
             return TextUtils.isEmpty(resource) ? sensorManager.getDefaultSensor(sensor).getStringType() : resources.getString(resources.getIdentifier(resource, "string", BuildConfig.APPLICATION_ID));
         } catch (PackageManager.NameNotFoundException e) {
             return sensorManager.getDefaultSensor(sensor).getStringType();
-        }
-    }
-
-
-    public static Drawable getSensorIcon(@NonNull Context context, @Sensor int sensor) {
-        SensorManager sensorManager = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
-        switch (sensor) {
-            case Sensor.ACCELEROMETER:
-            case Sensor.ACCELEROMETER_UNCALIBRATED:
-            case Sensor.ORIENTATION:
-            case Sensor.GYROSCOPE:
-            case Sensor.GYROSCOPE_UNCALIBRATED:
-            case Sensor.TILT_DETECTOR:
-                return ContextCompat.getDrawable(context, R.drawable.sensor_accelerometer);
-            case Sensor.MAGNETIC_FIELD:
-            case Sensor.MAGNETIC_FIELD_UNCALIBRATED:
-                return ContextCompat.getDrawable(context, R.drawable.sensor_magnetic_field);
-            case Sensor.LIGHT:
-                return ContextCompat.getDrawable(context, R.drawable.sensor_light);
-            case Sensor.PRESSURE:
-                return ContextCompat.getDrawable(context, R.drawable.sensor_pressure);
-            case Sensor.ROTATION_VECTOR:
-            case Sensor.GAME_ROTATION_VECTOR:
-            case Sensor.GEOMAGNETIC_ROTATION_VECTOR:
-                return ContextCompat.getDrawable(context, R.drawable.sensor_rotation);
-            case Sensor.HEART_RATE:
-                return ContextCompat.getDrawable(context, R.drawable.sensor_accelerometer);
-            default:
-                return ContextCompat.getDrawable(context, R.drawable.sensor_unknown);
         }
     }
 }

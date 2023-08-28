@@ -4,8 +4,6 @@
     <color name="primaryColorVariant">#176FB5</color>
     <color name="secondaryColor">#673AB7</color>
     <color name="secondaryColorVariant">#512E8F</color>
-    <color name="textColor">#F6F6F6</color>
-    <color name="textHighlightColor">#2B2B2B</color>
     <color name="white">#FFFFFF</color>
     <color name="black">#121212</color>
 </resources>
