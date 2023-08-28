@@ -19,13 +19,17 @@ import ru.liner.sensorpermission.utils.Consumer;
  * E-mail: serinity320@mail.com
  * Github: https://github.com/LinerSRT
  * Date: 28.08.2023, 0:06
- * @noinspection unused
+ *
+ * @noinspection unused, UnusedReturnValue
  */
 public class MethodHooker {
     @NonNull
     private final ClassLoader classLoader;
     @Nullable
     private String className;
+
+    @Nullable
+    private Class<?> aClass;
     @Nullable
     private String methodName;
     @Nullable
@@ -44,8 +48,9 @@ public class MethodHooker {
         return this;
     }
 
-    public MethodHooker className(@NonNull Class<?> className) {
-        this.className = className.getSimpleName();
+    public MethodHooker className(@NonNull Class<?> aClass) {
+        this.className = aClass.getSimpleName();
+        this.aClass = aClass;
         return this;
     }
 
@@ -83,6 +88,8 @@ public class MethodHooker {
     private Method findMethod() {
         log("Searching %s in %s", methodName, className);
         Class<?> clazz = XposedHelpers.findClassIfExists(className, classLoader);
+        if (clazz == null && aClass != null)
+            clazz = aClass;
         if (clazz != null) {
             for (Method method : clazz.getDeclaredMethods())
                 if (method.getName().equals(methodName)) {
@@ -123,7 +130,9 @@ public class MethodHooker {
         void apply(HookedMethod hookedMethod);
     }
 
-    /** @noinspection unused*/
+    /**
+     * @noinspection unused
+     */
     public static class HookedMethod {
         @NonNull
         private final Member method;
@@ -162,7 +171,7 @@ public class MethodHooker {
             Optional<Field> searchedField = Arrays.stream(object.getClass().getDeclaredFields())
                     .filter(field -> field.getName().equals(fieldName))
                     .findAny();
-            if(searchedField.isPresent()){
+            if (searchedField.isPresent()) {
                 try {
                     Field field = searchedField.get();
                     field.setAccessible(true);
@@ -181,7 +190,7 @@ public class MethodHooker {
             Optional<Field> searchedField = Arrays.stream(object().getClass().getDeclaredFields())
                     .filter(field -> field.getName().equals(fieldName))
                     .findAny();
-            if(searchedField.isPresent()){
+            if (searchedField.isPresent()) {
                 try {
                     Field field = searchedField.get();
                     field.setAccessible(true);
@@ -229,6 +238,10 @@ public class MethodHooker {
 
         public <MethodResult> void result(MethodResult methodResult) {
             param.setResult(methodResult);
+        }
+
+        public void log(String message, Object... objects) {
+            XposedBridge.log(String.format("{Hooker} --> {%s} --> %s", method.getName(), String.format(message, objects)));
         }
     }
 

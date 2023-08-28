@@ -32,7 +32,8 @@ public class RemotePM {
     private List<ChangeListener<?>> changeListeners;
 
     public static void init(Context context) {
-        RemotePM = new RemotePM();
+        if(RemotePM == null)
+            RemotePM = new RemotePM();
         if (RemotePM.sharedPreferences == null) {
             RemotePM.sharedPreferences = new RemotePreferences(context, BuildConfig.APPLICATION_ID, "sensorpermission");
             RemotePM.changeListeners = new ArrayList<>();
