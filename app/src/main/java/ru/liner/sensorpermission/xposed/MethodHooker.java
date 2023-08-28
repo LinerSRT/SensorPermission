@@ -223,7 +223,7 @@ public class MethodHooker {
                 param.args[index] = argumentValue;
         }
 
-        public int lasArgumentIndex() {
+        public int lastArgumentIndex() {
             return arguments.length - 1;
         }
 

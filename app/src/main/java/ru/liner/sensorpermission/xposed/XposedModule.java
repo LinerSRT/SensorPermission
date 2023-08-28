@@ -46,11 +46,11 @@ public class XposedModule {
     public void log(String message, Object... objects) {
         XposedBridge.log(String.format("{%s} --> %s", TAG, String.format(message, objects)));
     }
-    public static void log(String tag, String message, Object... objects) {
+    public static void logs(String tag, String message, Object... objects) {
         XposedBridge.log(String.format("{%s} --> %s", tag, String.format(message, objects)));
     }
 
-    public static Context getSystemContext() {
+    public static Context systemContext() {
         return (Context) callMethod(callStaticMethod(findClass("android.app.ActivityThread", null), "currentActivityThread"), "getSystemContext");
     }
 
@@ -59,12 +59,12 @@ public class XposedModule {
         return packageName;
     }
 
-    public static Context getApplicationContext(XC_LoadPackage.LoadPackageParam packageParam) {
+    public static Context contextOf(XC_LoadPackage.LoadPackageParam packageParam) {
         try {
-            return getSystemContext().createPackageContext(packageParam.packageName, Context.CONTEXT_IGNORE_SECURITY);
+            return systemContext().createPackageContext(packageParam.packageName, Context.CONTEXT_IGNORE_SECURITY);
         } catch (PackageManager.NameNotFoundException e) {
             e.printStackTrace();
         }
-        return getSystemContext();
+        return systemContext();
     }
 }

@@ -1,5 +1,8 @@
 package ru.liner.sensorpermission.service;
 
+import static androidx.core.app.NotificationCompat.CATEGORY_STATUS;
+import static androidx.core.app.NotificationCompat.PRIORITY_MIN;
+
 import android.app.AlarmManager;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -34,12 +37,14 @@ public abstract class ImmortalService extends Service {
         NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
         NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this, getChannelID())
                 .setSmallIcon(getNotificationIcon())
-                .setContentTitle(getNotificationTitle())
-                .setContentText(getNotificationText())
+                .setOngoing(true)
+                .setPriority(PRIORITY_MIN)
+                .setCategory(CATEGORY_STATUS)
                 .setAutoCancel(true);
-        NotificationChannel notificationChannel = new NotificationChannel(getChannelID(), getChannelID(), NotificationManager.IMPORTANCE_HIGH);
+        NotificationChannel notificationChannel = new NotificationChannel(getChannelID(), getChannelID(), NotificationManager.IMPORTANCE_MIN);
         notificationBuilder.setChannelId(getChannelID());
         notificationChannel.setDescription(getChannelDescription());
+        notificationChannel.enableVibration(false);
         notificationManager.createNotificationChannel(notificationChannel);
         startForeground(9, notificationBuilder.build());
     }
@@ -75,13 +80,6 @@ public abstract class ImmortalService extends Service {
 
     @DrawableRes
     public abstract int getNotificationIcon();
-
-    @NonNull
-    public abstract String getNotificationTitle();
-
-    @NonNull
-    protected abstract String getNotificationText();
-
     @NonNull
     public abstract Class<? extends BroadcastReceiver> getRestartReceiverClass();
 }

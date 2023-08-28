@@ -25,18 +25,17 @@ import ru.liner.sensorpermission.xposed.XposedModule;
  */
 public class SensorModule extends XposedModule {
 
-    public SensorModule(@NonNull Context context, @NonNull ClassLoader classLoader) {
-        super(context.getPackageName(), context, classLoader, SensorModule.class.getSimpleName());
+    public SensorModule(@NonNull String packageName, @NonNull Context context, @NonNull ClassLoader classLoader) {
+        super(packageName, context, classLoader, SensorModule.class.getSimpleName());
         RemotePM.init(context);
     }
 
     @Override
     public void processModule() {
-        log("Starting initialization...");
+        log("Starting initialization for %s", packageName);
         MethodHooker.of(classLoader)
                 .className(SensorManager.class)
                 .methodName("getDefaultSensor")
-                .methodArguments(int.class)
                 .beforeFunction(hookedMethod -> {
                     PermissionPackage permissionPackage = Consumer.of(RemotePM.get(packageName, PermissionPackage.class)).orElse(new PermissionPackage(packageName));
                     PermissionInfo permissionInfo = permissionPackage.getPermission(hookedMethod.argument(0));
@@ -56,6 +55,7 @@ public class SensorModule extends XposedModule {
                             break;
                         case SensorStatus.UNKNOWN:
                             log("Unknown permission status {%s} for %s", sensorName, applicationName);
+                            hookedMethod.result(null);
                             break;
                     }
                 })
@@ -71,6 +71,6 @@ public class SensorModule extends XposedModule {
     }
 
     public static SensorModule of(@NonNull XC_LoadPackage.LoadPackageParam packageParam) {
-        return new SensorModule(getApplicationContext(packageParam), packageParam.classLoader);
+        return new SensorModule(packageParam.packageName, contextOf(packageParam), packageParam.classLoader);
     }
 }

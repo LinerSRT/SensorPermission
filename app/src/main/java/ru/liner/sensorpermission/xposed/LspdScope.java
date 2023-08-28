@@ -23,15 +23,15 @@ public class LspdScope {
 
     public static boolean add(@NonNull String packageName, @IntRange(from = 0, to = Integer.MAX_VALUE) int uid) {
         if(contains(packageName)){
-            XposedModule.log(TAG, "Skipping %s, already in scope list", packageName);
+            XposedModule.logs(TAG, "Skipping %s, already in scope list", packageName);
             return false;
         }
         Shell.Result addSystemUIScope = Shell.exec(String.format(".%s scope set %s -a %s/%s", BINARY, BuildConfig.APPLICATION_ID, packageName, uid), true);
         if (addSystemUIScope.isSuccess()) {
-            XposedModule.log(TAG, "Added %s to %s scope list", packageName, BuildConfig.APPLICATION_ID);
+            XposedModule.logs(TAG, "Added %s to %s scope list", packageName, BuildConfig.APPLICATION_ID);
             return true;
         } else {
-            XposedModule.log(TAG, "Failed to add %s to %s scope list", packageName, BuildConfig.APPLICATION_ID);
+            XposedModule.logs(TAG, "Failed to add %s to %s scope list", packageName, BuildConfig.APPLICATION_ID);
             return false;
         }
     }

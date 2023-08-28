@@ -36,6 +36,7 @@ public class RemotePM {
         if (RemotePM.sharedPreferences == null) {
             RemotePM.sharedPreferences = new RemotePreferences(context, BuildConfig.APPLICATION_ID, "sensorpermission");
             RemotePM.changeListeners = new ArrayList<>();
+            //TODO This listener is broken and never happens API > 26
             RemotePM.sharedPreferences.registerOnSharedPreferenceChangeListener((sharedPreferences, s) -> {
                 for (ChangeListener<?> changeListener : RemotePM.changeListeners) {
                     if (s.equals(changeListener.key())) {

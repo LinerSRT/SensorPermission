@@ -21,6 +21,25 @@ public class PermissionRequest {
         this.sensor = sensor;
     }
 
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        PermissionRequest that = (PermissionRequest) o;
+
+        if (sensor != that.sensor) return false;
+        return packageName.equals(that.packageName);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = packageName.hashCode();
+        result = 31 * result + sensor;
+        return result;
+    }
+
     @Override
     @NonNull
     public String toString() {

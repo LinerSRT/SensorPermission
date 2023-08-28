@@ -35,11 +35,11 @@ public class SystemUIModule extends XposedModule {
                 .className(NOTIFICATION_INFO_CLASS)
                 .methodName("bindNotification")
                 .beforeFunction(hookedMethod ->
-                        Consumer.of(hookedMethod.argument(hookedMethod.lasArgumentIndex()))
+                        Consumer.of(hookedMethod.argument(hookedMethod.lastArgumentIndex()))
                                 .next(input -> (Set<String>) input)
                                 .ifPresent(input -> {
                                     input.add(BuildConfig.APPLICATION_ID);
-                                    hookedMethod.argument(hookedMethod.lasArgumentIndex(), input);
+                                    hookedMethod.argument(hookedMethod.lastArgumentIndex(), input);
                                 }))
                 .hook();
         log("Initialization finished successfully!");
@@ -47,6 +47,6 @@ public class SystemUIModule extends XposedModule {
 
 
     public static SystemUIModule of(@NonNull XC_LoadPackage.LoadPackageParam packageParam) {
-        return new SystemUIModule(getApplicationContext(packageParam), packageParam.classLoader);
+        return new SystemUIModule(contextOf(packageParam), packageParam.classLoader);
     }
 }

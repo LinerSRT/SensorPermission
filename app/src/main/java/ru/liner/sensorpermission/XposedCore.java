@@ -2,14 +2,14 @@ package ru.liner.sensorpermission;
 
 import android.annotation.SuppressLint;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 import de.robv.android.xposed.IXposedHookLoadPackage;
 import de.robv.android.xposed.callbacks.XC_LoadPackage;
 import ru.liner.sensorpermission.xposed.XposedModule;
+import ru.liner.sensorpermission.xposed.modules.CoreModule;
 import ru.liner.sensorpermission.xposed.modules.SensorModule;
-import ru.liner.sensorpermission.xposed.modules.SensorPermissionModule;
 import ru.liner.sensorpermission.xposed.modules.SystemUIModule;
 
 /**
@@ -18,13 +18,12 @@ import ru.liner.sensorpermission.xposed.modules.SystemUIModule;
  * @created : 24.08.2023, четверг
  */
 public class XposedCore implements IXposedHookLoadPackage {
-    private final List<XposedModule> moduleList = new ArrayList<>();
+    private final HashMap<String, XposedModule> moduleList = new HashMap<>();
 
     private <M extends XposedModule> void addModule(String packageName, M module) {
-        if (moduleList.stream().noneMatch(xposedModule -> xposedModule.getPackageName().equals(packageName)))
-            moduleList.add(module);
+        if (!moduleList.containsKey(packageName))
+            moduleList.put(packageName, module);
     }
-
 
     @SuppressLint("PrivateApi")
     @Override
@@ -37,16 +36,14 @@ public class XposedCore implements IXposedHookLoadPackage {
                 addModule(packageParam.packageName, SystemUIModule.of(packageParam));
                 break;
             case BuildConfig.APPLICATION_ID:
-                addModule(packageParam.packageName, SensorPermissionModule.of(packageParam));
+                addModule(packageParam.packageName, CoreModule.of(packageParam));
                 break;
             default:
                 addModule(packageParam.packageName, SensorModule.of(packageParam));
                 break;
         }
-
-        for (XposedModule module : moduleList)
-            if (module.shouldProcess(packageParam))
-                module.processModule();
-
+        for(Map.Entry<String, XposedModule> moduleEntry : moduleList.entrySet())
+            if(moduleEntry.getValue().shouldProcess(packageParam))
+                moduleEntry.getValue().processModule();
     }
 }
