@@ -28,146 +28,247 @@ import ru.liner.sensorpermission.BuildConfig;
  * E-mail: serinity320@mail.com
  * Github: https://github.com/LinerSRT
  * Date: 29.08.2023, 0:25
- *
+ * XPM is file-type custom preferences.
  * @noinspection unused
  */
 public class XPM {
+
+    public static final XPM INSTANCE = new XPM();
     private static final File preferenceFile = new File(Environment.getDataDirectory(), String.format("data/%s/preferences.dat", BuildConfig.APPLICATION_ID));
-    private final Lock lock = new ReentrantLock();
+    private final Lock preferenceLock = new ReentrantLock();
     private final Gson gson;
-    private List<Entry<Object>> entryList;
+    private List<Entry<?>> entryList;
     private final Map<String, KeyChangeListener<?>> listenerMap;
 
 
+    /**
+     * Default constructor
+     */
     public XPM() {
+        Debug.log("Preference file exists: %s", preferenceFile.exists());
         if (!preferenceFile.exists())
             try {
                 if (!preferenceFile.createNewFile())
                     throw new RuntimeException("Cannot create preference file!");
             } catch (IOException e) {
-                e.printStackTrace();
+                throw new RuntimeException("Cannot create preference file!");
             }
         gson = new Gson();
         listenerMap = new ConcurrentHashMap<>();
         loadPreferences();
     }
 
-    /** @noinspection unchecked*/
-    public <Value> Value get(String key, Value defaultValue) {
+
+    /**
+     * This method helps load saved value from preferences
+     * @param key saved key
+     * @param defaultValue default value
+     * @return saved value if exists otherwise default value
+     * @param <Value> any type
+     * @noinspection unchecked
+     */
+    public <Value> Value get(@NonNull String key, @NonNull Value defaultValue) {
+        Debug.log("Obtain %s with default value %s", key, defaultValue);
         loadPreferences();
-        if(containKey(key))
+        if (containKey(key))
             return (Value) entryList.get(indexOf(key)).value;
         return defaultValue;
     }
 
-    public <Value> void set(String key, Value value) {
-        //TODO Check if value are same, do not any changes!
+    /**
+     * This method helps save any value at specific key.
+     * If value exits and not changed, do not modifying preferences and notifying listeners
+     * @param key for saving
+     * @param value for saving
+     * @param <Value> any type
+     */
+    public <Value> void set(@NonNull String key, @NonNull Value value) {
+        Debug.log("Setting %s with value %s", key, value);
         loadPreferences();
-        if(containKey(key)){
-            entryList.set(indexOf(key), new Entry<>(key, value));
+        boolean shouldNotify = false;
+        boolean shouldWrite = false;
+        if (containKey(key)) {
+            int index = indexOf(key);
+            Entry<?> currentValue = entryList.get(index);
+            Entry<?> newValue = new Entry<>(key, value);
+            if (!currentValue.equals(newValue)) {
+                entryList.set(index, newValue);
+                shouldNotify = true;
+                shouldWrite = true;
+            } else {
+                Debug.log("Saved value is same as %s, do not notify and write");
+            }
         } else {
             entryList.add(new Entry<>(key, value));
+            shouldNotify = true;
+            shouldWrite = true;
         }
-        savePreferences();
-        notifyListeners(key, value);
+        if (shouldWrite)
+            savePreferences();
+        if (shouldNotify)
+            notifyListeners(key, value);
     }
 
-    public void remove(String key){
+    /**
+     * Remove specific value by key
+     * @param key for preferences
+     */
+    public void remove(@NonNull String key) {
         loadPreferences();
-        if(containKey(key)){
+        if (containKey(key)) {
+            Debug.log("Removing %s from preferences", key);
             entryList.remove(indexOf(key));
             savePreferences();
             notifyListeners(key);
         }
     }
 
-    public boolean containKey(String key) {
+    /**
+     * Remove all saved preferences
+     */
+    public void removeAll() {
+        Debug.log("Removing all data from preferences");
+        loadPreferences();
+        for(Entry<?> entry : entryList)
+            notifyListeners(entry.key);
+        entryList.clear();
+        savePreferences();
+    }
+
+    /**
+     * Check if specific key is exists in preferences
+     * @param key to check
+     * @return true if exists
+     */
+    public boolean containKey(@NonNull String key) {
         for (Entry<?> entry : entryList)
             if (entry.key.equals(key))
                 return true;
         return false;
     }
 
-    private int indexOf(String key){
+    /**
+     * Find index for key, use with {@link XPM#containKey(String)}
+     * @param key for search
+     * @return index if exists, -1 if key not found
+     */
+    private int indexOf(@NonNull String key) {
         for (int i = 0; i < entryList.size(); i++)
-            if(entryList.get(i).key.equals(key))
+            if (entryList.get(i).key.equals(key))
                 return i;
         return -1;
     }
 
-    /** @noinspection unchecked*/
-    private <Value> void notifyListeners(String key, Value value) {
+    /**
+     * Notify all registered listeners about value changes
+     * @param key preference key
+     * @param value changed value
+     * @param <Value> any type
+     * @noinspection unchecked
+     */
+    private <Value> void notifyListeners(@NonNull String key, @NonNull Value value) {
         KeyChangeListener<Value> listener = (KeyChangeListener<Value>) listenerMap.get(key);
         if (listener != null)
             listener.onChanged(key, value);
     }
-    /** @noinspection unchecked*/
-    private <Value> void notifyListeners(String key) {
+
+    /**
+     * Notify all registered listeners about value removed
+     * @param key preference key
+     * @param <Value> any type
+     * @noinspection unchecked
+     */
+    private <Value> void notifyListeners(@NonNull String key) {
         KeyChangeListener<Value> listener = (KeyChangeListener<Value>) listenerMap.get(key);
         if (listener != null)
             listener.onRemoved();
     }
 
-    public <Value> void addKeyChangeListener(String key, KeyChangeListener<Value> listener) {
+    /**
+     * Register new key change listener
+     * @param key for listening
+     * @param listener listener
+     * @param <Value> any type
+     */
+    public <Value> void addKeyChangeListener(@NonNull String key, @NonNull KeyChangeListener<Value> listener) {
         listenerMap.put(key, listener);
     }
 
-    public void removeKeyChangeListener(String key) {
+    /**
+     * Unregister key change listener
+     * @param key for listening
+     */
+    public void removeKeyChangeListener(@NonNull String key) {
         listenerMap.remove(key);
     }
 
+    /**
+     * Load preferences from file.
+     * If file not readable or its first loading, save empty preference list for correct work
+     */
     private void loadPreferences() {
         String preferencesContent = readPreferences();
-        if (preferencesContent != null) {
-            entryList = gson.fromJson(preferencesContent, new ListType<>(Entry.class));
-            if(entryList == null) {
-                entryList = new ArrayList<>();
-                savePreferences();
-            }
-        } else {
-            entryList = new ArrayList<>();
-        }
+        entryList = Consumer.of(readPreferences())
+                .next((Consumer.FunctionB<String, List<Entry<?>>>) input -> gson.fromJson(input, new ListType<>(Entry.class)))
+                .orElse(new ArrayList<>());
+        if (entryList.isEmpty())
+            savePreferences();
     }
 
-    private void savePreferences(){
+    /**
+     * Save preferences to file
+     */
+    private void savePreferences() {
         writePreferences(gson.toJson(entryList));
     }
 
+    /**
+     * Write preferences file with desired content
+     * To avoid concurrent write using lock. Write allowed only if file not locked
+     * @param preferencesContent file content
+     */
     private void writePreferences(String preferencesContent) {
         try {
-            lock.lock();
+            preferenceLock.lock();
             BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(preferenceFile));
             bufferedWriter.write(preferencesContent);
             bufferedWriter.close();
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
-            lock.unlock();
+            preferenceLock.unlock();
         }
     }
 
+    /**
+     * Read preference file content
+     * Maybe remove redundant file lock?
+     * @return string of preference file
+     */
     private String readPreferences() {
         String preferencesContent = null;
         try {
-            lock.lock();
+            preferenceLock.lock();
             StringBuilder stringBuilder = new StringBuilder();
             BufferedReader bufferedReader = new BufferedReader(new FileReader(preferenceFile));
             String line;
-            while ((line = bufferedReader.readLine()) != null) {
+            while ((line = bufferedReader.readLine()) != null)
                 stringBuilder.append(line).append("\n");
-            }
             bufferedReader.close();
             preferencesContent = stringBuilder.toString();
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
-            lock.unlock();
+            preferenceLock.unlock();
         }
         return preferencesContent;
     }
 
 
-
+    /**
+     * Holder for preferences
+     * @param <Value> any type
+     */
     private static class Entry<Value> {
         @NonNull
         public String key;
@@ -178,10 +279,29 @@ public class XPM {
             this.key = key;
             this.value = value;
         }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+
+            Entry<?> entry = (Entry<?>) o;
+
+            if (!key.equals(entry.key)) return false;
+            return value.equals(entry.value);
+        }
+
+        @Override
+        public int hashCode() {
+            int result = key.hashCode();
+            result = 31 * result + value.hashCode();
+            return result;
+        }
     }
 
     public interface KeyChangeListener<Value> {
         void onChanged(@NonNull String key, @NonNull Value newValue);
+
         void onRemoved();
     }
 
