@@ -1,4 +1,4 @@
-package ru.liner.sensorpermission.utils;
+package ru.liner.preference;
 
 import android.content.Context;
 
@@ -6,18 +6,18 @@ import android.content.Context;
  * Author: Line'R
  * E-mail: serinity320@mail.com
  * Github: https://github.com/LinerSRT
- * Date: 28.08.2023, 15:21
- * @noinspection BusyWait
+ * Date: 29.08.2023, 14:47
  */
-public abstract class RemotePMListener<V> implements Runnable {
-    protected boolean isRunning;
-    protected boolean removeNotified;
+public abstract class PreferenceListener<V> implements Runnable {
+    private final IPreference preference;
+    private boolean isRunning;
+    private boolean removeNotified;
     private Thread thread;
 
     private V oldValue;
 
-    public RemotePMListener(Context context) {
-        RemotePM.init(context);
+    public PreferenceListener(Context context) {
+        this.preference = PreferenceWrapper.get(context);
     }
 
     public void start() {
@@ -50,16 +50,16 @@ public abstract class RemotePMListener<V> implements Runnable {
     @Override
     public void run() {
         while (isRunning) {
-            if (RemotePM.hasKey(key())) {
+            if (preference.has(key())) {
                 removeNotified = false;
                 if(defaultValue() == null && defaultValueClass() != null){
-                    V newValue = RemotePM.get(key(), defaultValueClass());
+                    V newValue = preference.get(key(), defaultValueClass());
                     if(oldValue == null || !oldValue.equals(newValue)){
                         oldValue = newValue;
                         changed(newValue);
                     }
                 } else if(defaultValue() != null){
-                    changed(RemotePM.get(key(), defaultValue()));
+                    changed(preference.get(key(), defaultValue()));
                 }
             } else {
                 if (!removeNotified) {

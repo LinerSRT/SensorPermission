@@ -3,7 +3,6 @@ package ru.liner.sensorpermission;
 import android.app.Application;
 
 import ru.liner.colorfy.core.Colorfy;
-import ru.liner.sensorpermission.utils.RemotePM;
 
 /**
  * @author : "Line'R"
@@ -15,7 +14,6 @@ public class Core extends Application {
     public void onCreate() {
         super.onCreate();
         Colorfy.getInstance(this);
-        RemotePM.init(this);
     }
 
 

@@ -20,6 +20,8 @@ import de.robv.android.xposed.callbacks.XC_LoadPackage;
  */
 public class XposedModule {
     public static final String ANDROID = "android";
+    public static final String ANDROID_PACKAGE = "com.android";
+    public static final String GOOGLE_PACKAGE = "com.google";
     @NonNull
     protected String packageName;
     @NonNull

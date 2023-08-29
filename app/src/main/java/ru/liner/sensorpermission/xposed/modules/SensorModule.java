@@ -6,14 +6,14 @@ import android.hardware.SensorManager;
 import androidx.annotation.NonNull;
 
 import de.robv.android.xposed.callbacks.XC_LoadPackage;
+import ru.liner.preference.IPreference;
+import ru.liner.preference.PreferenceWrapper;
 import ru.liner.sensorpermission.BuildConfig;
 import ru.liner.sensorpermission.permission.PermissionInfo;
 import ru.liner.sensorpermission.permission.PermissionPackage;
 import ru.liner.sensorpermission.sensor.SensorStatus;
-import ru.liner.sensorpermission.sensor.SensorTool;
 import ru.liner.sensorpermission.utils.ApplicationManager;
 import ru.liner.sensorpermission.utils.Consumer;
-import ru.liner.sensorpermission.utils.RemotePM;
 import ru.liner.sensorpermission.xposed.MethodHooker;
 import ru.liner.sensorpermission.xposed.XposedModule;
 
@@ -24,10 +24,10 @@ import ru.liner.sensorpermission.xposed.XposedModule;
  * Date: 27.08.2023, 22:18
  */
 public class SensorModule extends XposedModule {
-
+    private IPreference preference;
     public SensorModule(@NonNull String packageName, @NonNull Context context, @NonNull ClassLoader classLoader) {
         super(packageName, context, classLoader, SensorModule.class.getSimpleName());
-        RemotePM.init(context);
+        preference = PreferenceWrapper.get(context);
     }
 
     @Override
@@ -37,24 +37,23 @@ public class SensorModule extends XposedModule {
                 .className(SensorManager.class)
                 .methodName("getDefaultSensor")
                 .beforeFunction(hookedMethod -> {
-                    PermissionPackage permissionPackage = Consumer.of(RemotePM.get(packageName, PermissionPackage.class)).orElse(new PermissionPackage(packageName));
+                    PermissionPackage permissionPackage = Consumer.of(preference.get(packageName, PermissionPackage.class)).orElse(new PermissionPackage(packageName));
                     PermissionInfo permissionInfo = permissionPackage.getPermission(hookedMethod.argument(0));
-                    String sensorName = SensorTool.getSensorName(context, permissionInfo.sensor);
                     String applicationName = ApplicationManager.getApplicationName(context, packageName);
-                    RemotePM.put(packageName, permissionPackage);
+                    preference.put(packageName, permissionPackage);
                     switch (permissionInfo.status) {
                         case SensorStatus.DENIED:
                             hookedMethod.result(null);
-                            log("Denied permission {%s} for %s", sensorName, applicationName);
+                            log("Denied permission {%s} for %s", "sensorName", applicationName);
                             break;
                         case SensorStatus.GRANTED:
-                            log("Granted permission {%s} for %s", sensorName, applicationName);
+                            log("Granted permission {%s} for %s", "sensorName", applicationName);
                             break;
                         case SensorStatus.GRANTED_ONCE:
-                            log("Granted once permission {%s} for %s", sensorName, applicationName);
+                            log("Granted once permission {%s} for %s", "sensorName", applicationName);
                             break;
                         case SensorStatus.UNKNOWN:
-                            log("Unknown permission status {%s} for %s", sensorName, applicationName);
+                            log("Unknown permission status {%s} for %s", "sensorName", applicationName);
                             hookedMethod.result(null);
                             break;
                     }
@@ -67,7 +66,9 @@ public class SensorModule extends XposedModule {
     public boolean shouldProcess(@NonNull XC_LoadPackage.LoadPackageParam loadedPackage) {
         return !loadedPackage.packageName.equals(BuildConfig.APPLICATION_ID) &&
                 !loadedPackage.packageName.equals(SystemUIModule.PACKAGE) &&
-                !loadedPackage.packageName.equals(XposedModule.ANDROID);
+                !loadedPackage.packageName.equals(XposedModule.ANDROID) &&
+                !loadedPackage.packageName.startsWith(XposedModule.ANDROID_PACKAGE) &&
+                !loadedPackage.packageName.startsWith(XposedModule.GOOGLE_PACKAGE);
     }
 
     public static SensorModule of(@NonNull XC_LoadPackage.LoadPackageParam packageParam) {

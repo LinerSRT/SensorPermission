@@ -38,7 +38,7 @@
         </activity>
 
         <provider
-            android:name=".utils.RemotePMProvider"
+            android:name="ru.liner.preference.RemotePreferenceProvider"
             android:authorities="ru.liner.sensorpermission"
             android:exported="true"
             tools:ignore="ExportedContentProvider" />

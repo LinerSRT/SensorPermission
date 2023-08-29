@@ -9,10 +9,11 @@ import android.view.WindowManager;
 import androidx.annotation.NonNull;
 
 import ru.liner.colorfy.core.Colorfy;
+import ru.liner.preference.IPreference;
+import ru.liner.preference.PreferenceListener;
+import ru.liner.preference.PreferenceWrapper;
 import ru.liner.sensorpermission.R;
 import ru.liner.sensorpermission.permission.PermissionRequest;
-import ru.liner.sensorpermission.utils.RemotePM;
-import ru.liner.sensorpermission.utils.RemotePMListener;
 
 /**
  * Author: Line'R
@@ -24,16 +25,18 @@ public class PermissionOverlayService extends ImmortalService {
     private static final String TAG = PermissionOverlayService.class.getSimpleName();
     private WindowManager windowManager;
     private Colorfy colorfy;
-    private RemotePMListener<PermissionRequest> requestListener;
+    private IPreference preference;
+    private PreferenceListener<PermissionRequest> preferenceListener;
 
     @Override
     public void onCreate() {
         super.onCreate();
-        RemotePM.init(this);
+        preference = PreferenceWrapper.get(this);
         alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
         windowManager = (WindowManager) getSystemService(WINDOW_SERVICE);
         colorfy = Colorfy.getInstance(this);
-        requestListener = new RemotePMListener<PermissionRequest>(this) {
+
+        preferenceListener = new PreferenceListener<PermissionRequest>(this) {
             @Override
             public String key() {
                 return "pending_permission_request";
@@ -58,7 +61,7 @@ public class PermissionOverlayService extends ImmortalService {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        requestListener.start();
+        preferenceListener.start();
         Log.d(TAG, "Service started");
         return START_NOT_STICKY;
     }
@@ -66,7 +69,7 @@ public class PermissionOverlayService extends ImmortalService {
     @Override
     public void onDestroy() {
         super.onDestroy();
-        requestListener.stop();
+        preferenceListener.stop();
         Log.d(TAG, "Service destroyed");
     }
 
